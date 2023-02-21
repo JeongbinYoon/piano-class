@@ -1,9 +1,10 @@
-import "./App.css";
 import { BsKeyFill } from "react-icons/bs";
 import { useRef, useState } from "react";
+import io from "socket.io-client";
 
 function App() {
   const [privateRoomChecked, setPrivateRoomChecked] = useState<boolean>(false);
+  const socket = io("http://localhost:8080");
   // 비공개 토글 클릭
   const handlePrivateToggle = (event: React.MouseEvent<HTMLDivElement>) => {
     const toggle = event.currentTarget.firstElementChild as HTMLDivElement;
@@ -36,6 +37,8 @@ function App() {
   const roomNameInputRef = useRef<HTMLInputElement>(null);
   const nickNameInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
+
+  // 입장 버튼 클릭
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     const roomName = roomNameInputRef.current!.value;
@@ -48,7 +51,13 @@ function App() {
     }
     console.log(roomName, nickName, password);
     console.log(privateRoomChecked);
+    console.log(socket);
+    socket.emit("message", roomName);
   };
+
+  socket.on("message", (a) => console.log(a));
+  socket.on("welcome", (a) => console.log(a));
+
   return (
     <div className="flex justify-center items-center flex-nowrap flex-col py-10 px-4 bg-brand md:flex-row md:h-fit md:flex-wrap md:h-screen">
       {/* 방 만들기 */}
