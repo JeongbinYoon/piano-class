@@ -19,16 +19,43 @@ const io = new Server(httpServer, {
   },
 });
 
+// 사용자가 만든 Room(Public)
+const publicRooms = () => {
+  const {
+    sockets: {
+      adapter: { sids, rooms },
+    },
+  } = io;
+
+  const publicRooms = [];
+  rooms.forEach((value, key) => {
+    if (sids.get(key) === undefined) {
+      publicRooms.push(key);
+    }
+  });
+  return publicRooms;
+};
+
 io.on("connection", (socket) => {
-  console.log(socket);
-  console.log("User Connected");
-  socket.on("disconnect", () => {
-    console.log("User Disconnect");
+  // io.sockets.emit("room_change", publicRooms());
+  socket.onAny(() => {
+    // console.log(io.sockets.adapter);
   });
-  socket.on("message", (roomName) => {
-    socket.emit("message", "방 이름은 roomName 입니다");
+  socket.on("enterRoom", (roomName, nickName) => {
+    socket["nickname"] = nickName ? nickName : "익명";
+    socket.join(roomName);
+    io.sockets.emit("room_change", publicRooms());
+    socket.emit("message", `${roomName}방에 입장하셨습니다.`);
+    socket
+      .to(roomName)
+      .emit("message", `${socket["nickname"]}님이 입장하셨습니다.`);
   });
-  socket.emit("welcome", "환엽합니다.");
+  socket.on("disconnecting", () => {
+    socket.rooms.forEach((room) => socket.to(room).emit("bye"));
+  });
+  // socket.on("disconnect", () => {
+  //   io.sockets.emit("room_change", publicRooms());
+  // });
 });
 
 httpServer.listen(port, () => {

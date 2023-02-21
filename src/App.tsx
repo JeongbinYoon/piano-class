@@ -4,6 +4,7 @@ import io from "socket.io-client";
 
 function App() {
   const [privateRoomChecked, setPrivateRoomChecked] = useState<boolean>(false);
+  const [rooms, setRooms] = useState<any>([]);
   const socket = io("http://localhost:8080");
   // 비공개 토글 클릭
   const handlePrivateToggle = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -49,15 +50,14 @@ function App() {
     } else {
       password = "";
     }
-    console.log(roomName, nickName, password);
-    console.log(privateRoomChecked);
-    console.log(socket);
-    socket.emit("message", roomName);
+    socket.emit("enterRoom", roomName, nickName);
   };
 
-  socket.on("message", (a) => console.log(a));
-  socket.on("welcome", (a) => console.log(a));
+  socket.on("message", console.log);
+  socket.on("bye", console.log);
+  socket.on("room_change", setRooms);
 
+  console.log(rooms);
   return (
     <div className="flex justify-center items-center flex-nowrap flex-col py-10 px-4 bg-brand md:flex-row md:h-fit md:flex-wrap md:h-screen">
       {/* 방 만들기 */}
@@ -119,37 +119,18 @@ function App() {
           </button>
         </form>
       </div>
+
       {/* 방 목록 */}
       <ul className="w-full max-w-sm h-fit mt-2.5 p-5 bg-white border rounded-lg md:h-525 md:w-4/12 md:mt-0">
-        <li className="flex justify-between items-center px-4 py-6 bg-slate-50 shadow-md rounded-lg cursor-pointer mb-2.5 last:mb-0">
-          <span className="text-zinc-700">같이 해요~</span>
-          <BsKeyFill className="text-2xl text-amber-400" />
-        </li>
-
-        <li className="flex justify-between items-center px-4 py-6 bg-slate-50 shadow-md rounded-lg cursor-pointer mb-2.5 last:mb-0">
-          <span className="text-zinc-700">같이 해요~</span>
-          <BsKeyFill className="text-2xl text-amber-400" />
-        </li>
-
-        <li className="flex justify-between items-center px-4 py-6 bg-slate-50 shadow-md rounded-lg cursor-pointer mb-2.5 last:mb-0">
-          <span className="text-zinc-700">같이 해요~</span>
-          <BsKeyFill className="text-2xl text-amber-400" />
-        </li>
-
-        <li className="flex justify-between items-center px-4 py-6 bg-slate-50 shadow-md rounded-lg cursor-pointer mb-2.5 last:mb-0">
-          <span className="text-zinc-700">같이 해요~</span>
-          <BsKeyFill className="text-2xl text-amber-400" />
-        </li>
-
-        <li className="flex justify-between items-center px-4 py-6 bg-slate-50 shadow-md rounded-lg cursor-pointer mb-2.5 last:mb-0">
-          <span className="text-zinc-700">같이 해요~</span>
-          <BsKeyFill className="text-2xl text-amber-400" />
-        </li>
-
-        <li className="flex justify-between items-center px-4 py-6 bg-slate-50 shadow-md rounded-lg cursor-pointer mb-2.5 last:mb-0">
-          <span className="text-zinc-700">같이 해요~</span>
-          <BsKeyFill className="text-2xl text-amber-400" />
-        </li>
+        {rooms.map((room: any) => (
+          <li
+            key={room}
+            className="flex justify-between items-center px-4 py-6 bg-slate-50 shadow-md rounded-lg cursor-pointer mb-2.5 last:mb-0"
+          >
+            <span className="text-zinc-700">{room}</span>
+            <BsKeyFill className="text-2xl text-amber-400" />
+          </li>
+        ))}
       </ul>
     </div>
   );
