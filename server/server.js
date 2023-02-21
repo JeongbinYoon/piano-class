@@ -37,25 +37,28 @@ const publicRooms = () => {
 };
 
 io.on("connection", (socket) => {
-  // io.sockets.emit("room_change", publicRooms());
-  socket.onAny(() => {
-    // console.log(io.sockets.adapter);
-  });
-  socket.on("enterRoom", (roomName, nickName) => {
+  io.sockets.emit("room_change", publicRooms());
+  console.log(socket.id);
+  socket.on("enter_room", function (roomName, nickName) {
     socket["nickname"] = nickName ? nickName : "익명";
     socket.join(roomName);
-    io.sockets.emit("room_change", publicRooms());
     socket.emit("message", `${roomName}방에 입장하셨습니다.`);
     socket
       .to(roomName)
       .emit("message", `${socket["nickname"]}님이 입장하셨습니다.`);
+    io.sockets.emit("room_change", publicRooms());
   });
+
   socket.on("disconnecting", () => {
-    socket.rooms.forEach((room) => socket.to(room).emit("bye"));
+    socket.rooms.forEach((room) =>
+      socket
+        .to(room)
+        .emit("message", `${socket["nickname"]}님이 방을 떠났습니다.`)
+    );
   });
-  // socket.on("disconnect", () => {
-  //   io.sockets.emit("room_change", publicRooms());
-  // });
+  socket.on("disconnect", () => {
+    io.sockets.emit("room_change", publicRooms());
+  });
 });
 
 httpServer.listen(port, () => {
