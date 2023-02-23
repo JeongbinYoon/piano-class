@@ -36,17 +36,37 @@ const publicRooms = () => {
   return publicRooms;
 };
 
+// 방 접속시 비밀번호 체크
+const checkPassword = (roomData) => {
+  const { roomName, password } = roomData;
+  if (!passwordProtectedRooms[roomName]) {
+    passwordProtectedRooms[roomName] = password;
+  }
+  return passwordProtectedRooms[roomName] === password;
+};
+
+// 패스워드 적용 Room list {Room name , password}
+const passwordProtectedRooms = {};
+
 io.on("connection", (socket) => {
   io.sockets.emit("room_change", publicRooms());
-  console.log(socket.id);
-  socket.on("enter_room", function (roomName, nickName) {
-    socket["nickname"] = nickName ? nickName : "익명";
-    socket.join(roomName);
-    socket.emit("message", `${roomName}방에 입장하셨습니다.`);
-    socket
-      .to(roomName)
-      .emit("message", `${socket["nickname"]}님이 입장하셨습니다.`);
-    io.sockets.emit("room_change", publicRooms());
+
+  socket.on("enter_room", (roomData, nickName, roomJoinSuccess) => {
+    const { roomName } = roomData;
+    const correctPassword = checkPassword(roomData);
+
+    if (correctPassword) {
+      socket.join(roomName);
+      roomJoinSuccess();
+      socket["nickname"] = nickName;
+      socket.emit("message", `${roomName}방에 입장하셨습니다.`);
+      socket
+        .to(roomName)
+        .emit("message", `${socket["nickname"]}님이 입장하셨습니다.`);
+      io.sockets.emit("room_change", publicRooms());
+    } else {
+      socket.emit("roomJoinFailed", { message: "비밀번호가 틀립니다." });
+    }
   });
 
   socket.on("disconnecting", () => {
@@ -55,6 +75,9 @@ io.on("connection", (socket) => {
         .to(room)
         .emit("message", `${socket["nickname"]}님이 방을 떠났습니다.`)
     );
+  });
+  socket.on("message", (msg) => {
+    socket.emit("message", msg);
   });
   socket.on("disconnect", () => {
     io.sockets.emit("room_change", publicRooms());
