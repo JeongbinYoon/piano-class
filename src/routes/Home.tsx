@@ -1,10 +1,8 @@
-import { useEffect } from "react";
-import io from "socket.io-client";
 import RoomList from "../components/RoomList";
 import CreateRoom from "../components/CreateRoom";
+import { SocketProps } from "../@types/types";
 
-const socket = io("http://localhost:8080");
-function Home() {
+function Home({ socket }: SocketProps) {
   return (
     <div className="flex justify-center items-center flex-nowrap flex-col py-10 px-4 bg-brand md:flex-row md:flex-wrap h-screen">
       {/* 방 만들기 */}

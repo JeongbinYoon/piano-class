@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
 import { roomsState } from "../atoms";
 import { BsKeyFill } from "react-icons/bs";
+import { SocketProps } from "../@types/types";
 
-function RoomList({ socket }: any) {
+function RoomList({ socket }: SocketProps) {
   const navigate = useNavigate();
   const [rooms, setRooms] = useRecoilState(roomsState);
 
@@ -13,14 +14,21 @@ function RoomList({ socket }: any) {
     let nickName = "익명";
     const password = null;
     socket.emit("enter_room", { roomName, password }, nickName, () =>
-      navigate(`/room/${roomName}`)
+      navigate(`/room/${roomName}`, { state: roomName })
     );
   };
+
+  const handleMessage = (msg: string) => {
+    console.log(msg);
+  };
+
   useEffect(() => {
     socket.on("room_change", setRooms);
-    socket.on("message", console.log);
-    socket.on("bye", console.log);
     socket.on("roomJoinFailed", console.log);
+    socket.on("message", handleMessage);
+    return () => {
+      socket.off("message", handleMessage);
+    };
   }, []);
 
   return (

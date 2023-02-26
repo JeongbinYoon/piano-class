@@ -1,9 +1,11 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { GiGrandPiano } from "react-icons/gi";
 import { useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
+import { SocketProps } from "../@types/types";
 import { privateRoomCheckedState } from "../atoms";
-function CreateRoom({ socket }: any) {
+
+function CreateRoom({ socket }: SocketProps) {
   const navigate = useNavigate();
   const roomNameInputRef = useRef<HTMLInputElement>(null);
   const nickNameInputRef = useRef<HTMLInputElement>(null);
@@ -52,15 +54,16 @@ function CreateRoom({ socket }: any) {
     }
 
     socket.emit("enter_room", { roomName, password }, nickName, () =>
-      navigate(`/room/${roomName}`)
+      navigate(`/room/${roomName}`, { state: roomName })
     );
   };
+
   return (
     <div className="flex flex-col items-center w-full md:max-w-sm md:mr-5">
       {privateRoomChecked ? (
-        <GiGrandPiano className="text-9xl text-blue-100 mb-2.5" />
-      ) : (
         <GiGrandPiano className="text-9xl text-blue-100 mb-2.5 md:text-7xl" />
+      ) : (
+        <GiGrandPiano className="text-9xl text-blue-100 mb-2.5" />
       )}
       <form
         className="w-full max-w-sm p-5 bg-white rounded-lg transition duration-200"
