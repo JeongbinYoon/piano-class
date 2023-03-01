@@ -1,11 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useSetRecoilState } from "recoil";
 import { SocketProps } from "../@types/types";
+import { privateRoomCheckedState } from "../atoms";
 import { history } from "../history";
 
 function Room({ socket }: SocketProps) {
   const { state } = useLocation();
   const roomName = state;
+  const setPrivateRoomChecked = useSetRecoilState(privateRoomCheckedState);
 
   const handleMessage = (msg: string) => {
     console.log(msg);
@@ -16,11 +19,15 @@ function Room({ socket }: SocketProps) {
     const listenBackEvent = () => {
       // 뒤로가기 할 때 수행할 동작
       socket.emit("leave_room", roomName);
+      socket.emit("room_change");
+      setPrivateRoomChecked(() => false);
     };
 
     const unlistenHistoryEvent = history.listen(({ action }) => {
       if (action === "POP") {
-        listenBackEvent();
+        if (window.confirm("방을 나가시겠습니까?")) {
+          listenBackEvent();
+        } else history.go(1);
       }
     });
 
@@ -34,6 +41,10 @@ function Room({ socket }: SocketProps) {
     };
   }, [socket]);
 
-  return <div>ROOM</div>;
+  return (
+    <div>
+      <div>{roomName}</div>
+    </div>
+  );
 }
 export default Room;

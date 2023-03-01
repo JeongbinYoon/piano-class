@@ -28,9 +28,12 @@ const publicRooms = () => {
   } = io;
 
   const publicRooms = [];
-  rooms.forEach((value, key) => {
+  rooms.forEach((_, key) => {
     if (sids.get(key) === undefined) {
-      publicRooms.push(key);
+      let password = false;
+      password = passwordProtectedRooms[key] !== null ? true : false;
+      publicRooms.push({ name: key, password });
+      console.log(passwordProtectedRooms[key]);
     }
   });
   return publicRooms;
@@ -59,18 +62,19 @@ io.on("connection", (socket) => {
     const correctPassword = checkPassword(roomData);
 
     // 패스워드 체크
-    if (correctPassword) {
-      socket.join(roomName);
-      socket["nickname"] = nickName;
-      socket.emit("message", `${roomName} 방에 입장하셨습니다.`);
-      socket
-        .to(roomName)
-        .emit("message", `${socket["nickname"]}님이 입장하셨습니다.`);
-      io.sockets.emit("room_change", publicRooms());
-      roomJoinSuccess();
-    } else {
+    if (!correctPassword) {
       socket.emit("roomJoinFailed", { message: "비밀번호가 틀립니다." });
+      return;
     }
+
+    socket.join(roomName);
+    socket["nickname"] = nickName === "" ? "익명" : nickName;
+    socket.emit("message", `${roomName} 방에 입장하셨습니다.`);
+    socket
+      .to(roomName)
+      .emit("message", `${socket["nickname"]}님이 입장하셨습니다.`);
+    io.sockets.emit("room_change", publicRooms());
+    roomJoinSuccess();
   });
 
   socket.on("leave_room", (roomName) => {
@@ -79,6 +83,10 @@ io.on("connection", (socket) => {
       .to(roomName)
       .emit("message", `${socket["nickname"]}님이 방을 떠났습니다.`);
     socket.emit("message", `${roomName} 방을 떠났습니다.`);
+  });
+
+  socket.on("room_change", () => {
+    io.sockets.emit("room_change", publicRooms());
   });
 
   socket.on("disconnecting", () => {

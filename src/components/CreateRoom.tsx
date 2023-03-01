@@ -40,7 +40,7 @@ function CreateRoom({ socket }: SocketProps) {
     }
     toggle.style.transform = `translate(${toggleDistance}px, -50%)`;
     pwInput.style.transform = `translateY(${inputDistance}px)`;
-    setPrivateRoomChecked(!privateRoomChecked);
+    setPrivateRoomChecked((prev) => !prev);
   };
 
   // 입장 버튼 클릭
@@ -51,8 +51,10 @@ function CreateRoom({ socket }: SocketProps) {
     let password = null;
     if (privateRoomChecked) {
       password = passwordInputRef.current!.value;
+      if (password === "") {
+        password = null;
+      }
     }
-
     socket.emit("enter_room", { roomName, password }, nickName, () =>
       navigate(`/room/${roomName}`, { state: roomName })
     );
