@@ -25,18 +25,23 @@ function RoomList({ socket }: SocketProps) {
     console.log(msg);
   };
 
+  const handleAlert = (msg: string) => {
+    alert(msg);
+  };
+
   useEffect(() => {
     socket.on("room_change", setRooms);
-    socket.on("roomJoinFailed", ({ message }) => alert(message));
+    socket.on("roomJoinFailed", handleAlert);
     socket.on("message", handleMessage);
     return () => {
       socket.off("message", handleMessage);
-      socket.off("roomJoinFailed", console.log);
+      socket.off("roomJoinFailed", handleAlert);
     };
   }, []);
+
   return (
     <ul className="w-full max-w-sm h-fit mt-2.5 p-5 bg-white border rounded-lg md:h-525 md:w-4/12 md:mt-0">
-      {rooms.map(({ name, password }: any) => (
+      {rooms.map(({ name, password }) => (
         <li
           key={name}
           onClick={() => handleEnterRoom(name, password)}

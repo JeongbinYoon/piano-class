@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useSetRecoilState } from "recoil";
 import { SocketProps } from "../@types/types";
 import { privateRoomCheckedState } from "../atoms";
+import Camera from "../components/Camera";
 import { history } from "../history";
 
 function Room({ socket }: SocketProps) {
@@ -32,18 +33,21 @@ function Room({ socket }: SocketProps) {
     });
 
     return unlistenHistoryEvent;
-  }, [roomName, socket]);
+  }, []);
 
   useEffect(() => {
     socket.on("message", handleMessage);
     return () => {
       socket.off("message", handleMessage);
     };
-  }, [socket]);
+  }, []);
 
   return (
     <div>
       <div>{roomName}</div>
+
+      {/* 카메라 */}
+      {/* <Camera /> */}
     </div>
   );
 }

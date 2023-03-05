@@ -63,7 +63,7 @@ io.on("connection", (socket) => {
 
     // 패스워드 체크
     if (!correctPassword) {
-      socket.emit("roomJoinFailed", { message: "비밀번호가 틀립니다." });
+      socket.emit("roomJoinFailed", "비밀번호가 틀립니다.");
       return;
     }
 
