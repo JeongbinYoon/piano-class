@@ -1,23 +1,55 @@
 import { atom } from "recoil";
+import {
+  Devices,
+  InitialDeviceId,
+  RoomInfo,
+  SelectedDeviceId,
+} from "./@types/types";
 
-interface IRoomInfo {
-  name: string;
-  password: boolean;
-}
-
-export const roomsState = atom<IRoomInfo[]>({
+// 생성된 방들의 제목, 패스워드 유무
+export const roomsState = atom<RoomInfo[]>({
   key: "roomsState",
   default: [{ name: "", password: false }],
 });
 
+// 비공개 방 토글 체크 여부
 export const privateRoomCheckedState = atom<boolean>({
   key: "privateRoomCheckedState",
   default: false,
 });
 
-export const myStreamState = atom<any>({
+// 사용자 스트림
+export const myStreamState = atom<MediaStream>({
   key: "myStreamState",
-  default: null,
+  default: undefined,
+});
+
+// 사용자 장비
+// 최초 적용된 장치 id => 해당하는 장치 selected
+export const initialDevicesIdState = atom<InitialDeviceId>({
+  key: "initialDevicesIdState",
+  default: {
+    initialCameraDeviceId: "",
+    initialAudioDeviceId: "",
+  },
+});
+
+// 선택한 카메라, 오디오 장치 Id
+export const selectedDevicesIdState = atom<SelectedDeviceId>({
+  key: "selectedDeviceIdState",
+  default: {
+    cameraDeviceId: "",
+    audioDeviceId: "",
+  },
+});
+
+// 사용자의 모든 카메라, 오디오 input 장치
+export const devicesState = atom<Devices>({
+  key: "devicesState",
+  default: {
+    cameras: [{}],
+    audioInputs: [{}],
+  },
 });
 
 // 음소거, 카메라 on/off
