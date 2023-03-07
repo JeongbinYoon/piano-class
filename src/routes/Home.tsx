@@ -7,8 +7,6 @@ import Camera from "../components/Camera";
 function Home({ socket }: SocketProps) {
   return (
     <>
-      {/* 카메라 */}
-      <Camera />
       {/* 피아노 */}
       {/* <Piano /> */}
       <div className="flex justify-center items-center flex-nowrap flex-col py-10 px-4 bg-brand md:flex-row md:flex-wrap h-screen">

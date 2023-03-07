@@ -1,39 +1,34 @@
-import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSetRecoilState } from "recoil";
 import { SocketProps } from "../@types/types";
 import { privateRoomCheckedState } from "../atoms";
 import Camera from "../components/Camera";
-import { history } from "../history";
 
 function Room({ socket }: SocketProps) {
-  const { state } = useLocation();
-  const roomName = state;
+  const { roomName } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const setPrivateRoomChecked = useSetRecoilState(privateRoomCheckedState);
 
   const handleMessage = (msg: string) => {
     console.log(msg);
   };
 
-  // 방에서 뒤로가기 감지하여 소켓 leave
-  useEffect(() => {
-    const listenBackEvent = () => {
-      // 뒤로가기 할 때 수행할 동작
-      socket.emit("leave_room", roomName);
-      socket.emit("room_change");
-      setPrivateRoomChecked(() => false);
-    };
+  // 뒤로가기 할 때 수행할 동작
+  const listenBackEvent = () => {
+    socket.emit("leave_room", roomName);
+    socket.emit("room_change");
+    setPrivateRoomChecked(() => false);
+  };
 
-    const unlistenHistoryEvent = history.listen(({ action }) => {
-      if (action === "POP") {
-        if (window.confirm("방을 나가시겠습니까?")) {
-          listenBackEvent();
-        } else history.go(1);
-      }
-    });
-
-    return unlistenHistoryEvent;
-  }, []);
+  // 뒤로가기 확인
+  const askGoBack = (event: any) => {
+    if (window.confirm("방을 나가시겠습니까?")) {
+      listenBackEvent();
+      navigate("/");
+    }
+  };
 
   useEffect(() => {
     socket.on("message", handleMessage);
@@ -42,12 +37,63 @@ function Room({ socket }: SocketProps) {
     };
   }, []);
 
+  const handleEnterRoomFromURL = (
+    roomName: string | undefined,
+    hasPassword: boolean
+  ) => {
+    let fromWhere = "url";
+    let nickName = "";
+    let password = null;
+
+    if (hasPassword) {
+      password = window.prompt("패스워드를 입력하세요");
+      fromWhere = "url_success";
+    }
+    socket.emit("enter_room", { roomName, password }, nickName, fromWhere, () =>
+      navigate(`/room/${roomName}`)
+    );
+  };
+
+  // URL로 방에 접속한 경우
+  useEffect(() => {
+    if (!location?.state?.fromList) {
+      handleEnterRoomFromURL(roomName, false);
+    }
+  }, []);
+
+  // URL로 접속하려는 방이 패스워드가 있는 경우 방 재접속 시도
+  useEffect(() => {
+    socket.on("room_list", (accessRoom) => {
+      if (accessRoom.password) {
+        handleEnterRoomFromURL(roomName, accessRoom.password);
+      }
+    });
+  }, []);
+
+  const handleAlert = (msg: string) => {
+    alert(msg);
+    navigate("/");
+  };
+
+  useEffect(() => {
+    socket.on("roomJoinFailed", handleAlert);
+    return () => {
+      socket.off("roomJoinFailed", handleAlert);
+    };
+  }, []);
+
   return (
     <div>
       <div>{roomName}</div>
 
       {/* 카메라 */}
-      {/* <Camera /> */}
+      <Camera />
+      <button
+        className="bg-button px-4 py-2.5 text-lg rounded-lg"
+        onClick={askGoBack}
+      >
+        나가기
+      </button>
     </div>
   );
 }

@@ -11,6 +11,7 @@ module.exports = {
       },
       colors: {
         brand: "rgb(2 132 199);",
+        button: "rgb(255, 165, 0)",
       },
     },
   },

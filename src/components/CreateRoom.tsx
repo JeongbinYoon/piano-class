@@ -48,6 +48,7 @@ function CreateRoom({ socket }: SocketProps) {
     event.preventDefault();
     const roomName = roomNameInputRef.current!.value;
     const nickName = nickNameInputRef.current!.value;
+    const fromWhere = "home";
     let password = null;
     if (privateRoomChecked) {
       password = passwordInputRef.current!.value;
@@ -55,8 +56,8 @@ function CreateRoom({ socket }: SocketProps) {
         password = null;
       }
     }
-    socket.emit("enter_room", { roomName, password }, nickName, () =>
-      navigate(`/room/${roomName}`, { state: roomName })
+    socket.emit("enter_room", { roomName, password }, nickName, fromWhere, () =>
+      navigate(`/room/${roomName}`, { state: { fromList: true } })
     );
   };
 

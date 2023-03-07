@@ -13,11 +13,12 @@ function RoomList({ socket }: SocketProps) {
   const handleEnterRoom = (roomName: string, hasPassword: boolean) => {
     let nickName = "";
     let password = null;
+    const fromWhere = "list";
     if (hasPassword) {
       password = window.prompt("패스워드를 입력하세요");
     }
-    socket.emit("enter_room", { roomName, password }, nickName, () =>
-      navigate(`/room/${roomName}`, { state: roomName })
+    socket.emit("enter_room", { roomName, password }, nickName, fromWhere, () =>
+      navigate(`/room/${roomName}`, { state: { fromList: true } })
     );
   };
 
@@ -30,6 +31,7 @@ function RoomList({ socket }: SocketProps) {
   };
 
   useEffect(() => {
+    socket.emit("room_change");
     socket.on("room_change", setRooms);
     socket.on("roomJoinFailed", handleAlert);
     socket.on("message", handleMessage);

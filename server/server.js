@@ -33,7 +33,6 @@ const publicRooms = () => {
       let password = false;
       password = passwordProtectedRooms[key] !== null ? true : false;
       publicRooms.push({ name: key, password });
-      console.log(passwordProtectedRooms[key]);
     }
   });
   return publicRooms;
@@ -48,19 +47,27 @@ const checkPassword = (roomData) => {
   return passwordProtectedRooms[roomName] === password;
 };
 
-// 패스워드 적용 Room list {Room name , password}
+// 패스워드 적용 Room list
+// {Room name , password(없는 경우 null)}
 const passwordProtectedRooms = {};
 
 io.on("connection", (socket) => {
   io.sockets.emit("room_change", publicRooms());
   socket.onAny(() => {
-    console.log(io.sockets.adapter.sids);
+    console.log(passwordProtectedRooms);
   });
 
-  socket.on("enter_room", (roomData, nickName, roomJoinSuccess) => {
+  // 방에서 입장할 때의 이벤트 처리
+  socket.on("enter_room", (roomData, nickName, fromWhere, roomJoinSuccess) => {
     const { roomName } = roomData;
     const correctPassword = checkPassword(roomData);
 
+    if (fromWhere === "url") {
+      const rooms = publicRooms();
+      const accessRoom = rooms.filter((room) => room.name === roomName)[0];
+      socket.emit("room_list", accessRoom);
+      return;
+    }
     // 패스워드 체크
     if (!correctPassword) {
       socket.emit("roomJoinFailed", "비밀번호가 틀립니다.");
@@ -77,14 +84,21 @@ io.on("connection", (socket) => {
     roomJoinSuccess();
   });
 
+  // 방에서 나갈 때의 이벤트 처리
   socket.on("leave_room", (roomName) => {
     socket.leave(roomName);
+    const room = io.sockets.adapter.rooms.get(roomName);
+    const numClients = room ? room.size : 0;
+    if (numClients === 0) {
+      delete passwordProtectedRooms[roomName];
+    }
     socket
       .to(roomName)
       .emit("message", `${socket["nickname"]}님이 방을 떠났습니다.`);
     socket.emit("message", `${roomName} 방을 떠났습니다.`);
   });
 
+  // 방 정보 업데이트
   socket.on("room_change", () => {
     io.sockets.emit("room_change", publicRooms());
   });
