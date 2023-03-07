@@ -37,7 +37,7 @@ function Room({ socket }: SocketProps) {
     };
   }, []);
 
-  const handleEnterRoomFromURL = (
+  const handleTryEnterRoomFromURL = (
     roomName: string | undefined,
     hasPassword: boolean
   ) => {
@@ -45,9 +45,20 @@ function Room({ socket }: SocketProps) {
     let nickName = "";
     let password = null;
 
+    socket.emit("enter_room", { roomName, password }, nickName, fromWhere, () =>
+      navigate(`/room/${roomName}`)
+    );
+  };
+  const handleEnterRoomFromURL = (
+    roomName: string | undefined,
+    hasPassword: boolean
+  ) => {
+    let fromWhere = "url_success";
+    let nickName = "";
+    let password = null;
+
     if (hasPassword) {
       password = window.prompt("패스워드를 입력하세요");
-      fromWhere = "url_success";
     }
     socket.emit("enter_room", { roomName, password }, nickName, fromWhere, () =>
       navigate(`/room/${roomName}`)
@@ -56,17 +67,15 @@ function Room({ socket }: SocketProps) {
 
   // URL로 방에 접속한 경우
   useEffect(() => {
-    if (!location?.state?.fromList) {
-      handleEnterRoomFromURL(roomName, false);
+    if (location?.state?.fromList === undefined) {
+      handleTryEnterRoomFromURL(roomName, false);
     }
   }, []);
 
   // URL로 접속하려는 방이 패스워드가 있는 경우 방 재접속 시도
   useEffect(() => {
     socket.on("room_list", (accessRoom) => {
-      if (accessRoom.password) {
-        handleEnterRoomFromURL(roomName, accessRoom.password);
-      }
+      handleEnterRoomFromURL(roomName, accessRoom.password);
     });
   }, []);
 
