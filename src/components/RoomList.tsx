@@ -16,6 +16,9 @@ function RoomList({ socket }: SocketProps) {
     const fromWhere = "list";
     if (hasPassword) {
       password = window.prompt("패스워드를 입력하세요");
+      if (!password) {
+        return;
+      }
     }
     socket.emit("enter_room", { roomName, password }, nickName, fromWhere, () =>
       navigate(`/room/${roomName}`, { state: { fromList: true } })

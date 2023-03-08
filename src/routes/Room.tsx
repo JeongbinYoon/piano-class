@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { useSetRecoilState } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { SocketProps } from "../@types/types";
-import { privateRoomCheckedState } from "../atoms";
+import { prevUrlState, privateRoomCheckedState } from "../atoms";
 import Camera from "../components/Camera";
 
 function Room({ socket }: SocketProps) {
@@ -65,14 +65,20 @@ function Room({ socket }: SocketProps) {
     );
   };
 
-  // URL로 방에 접속한 경우
+  // URL로 방에 접속하려하는 경우 접속 시도
+  const prevUrl = useRecoilValue(prevUrlState);
   useEffect(() => {
-    if (location?.state?.fromList === undefined) {
+    const prevPathname = prevUrl;
+    if (
+      location?.state?.fromList === undefined ||
+      prevPathname === location.pathname ||
+      prevPathname === ""
+    ) {
       handleTryEnterRoomFromURL(roomName, false);
     }
   }, []);
 
-  // URL로 접속하려는 방이 패스워드가 있는 경우 방 재접속 시도
+  // URL로 접속하려는 방의 패스워드 유무 확인 후 접속 시도
   useEffect(() => {
     socket.on("room_list", (accessRoom) => {
       handleEnterRoomFromURL(roomName, accessRoom.password);

@@ -18,6 +18,12 @@ export const privateRoomCheckedState = atom<boolean>({
   default: false,
 });
 
+// 이젠 페지 url
+export const prevUrlState = atom<string>({
+  key: "prevUrlState",
+  default: "",
+});
+
 // 사용자 스트림
 export const myStreamState = atom<MediaStream>({
   key: "myStreamState",

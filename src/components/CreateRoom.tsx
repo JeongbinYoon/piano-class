@@ -1,12 +1,13 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { GiGrandPiano } from "react-icons/gi";
-import { useNavigate } from "react-router-dom";
-import { useRecoilState } from "recoil";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { SocketProps } from "../@types/types";
-import { privateRoomCheckedState } from "../atoms";
+import { prevUrlState, privateRoomCheckedState } from "../atoms";
 
 function CreateRoom({ socket }: SocketProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const roomNameInputRef = useRef<HTMLInputElement>(null);
   const nickNameInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +61,12 @@ function CreateRoom({ socket }: SocketProps) {
       navigate(`/room/${roomName}`, { state: { fromList: true } })
     );
   };
+
+  const setPrevUrl = useSetRecoilState(prevUrlState);
+
+  useEffect(() => {
+    setPrevUrl(() => location.pathname);
+  }, []);
 
   return (
     <div className="flex flex-col items-center w-full md:max-w-sm md:mr-5">
