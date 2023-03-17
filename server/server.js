@@ -54,7 +54,7 @@ const passwordProtectedRooms = {};
 io.on("connection", (socket) => {
   io.sockets.emit("room_change", publicRooms());
   socket.onAny(() => {
-    console.log(passwordProtectedRooms);
+    // console.log(passwordProtectedRooms);
   });
 
   // 방에서 입장할 때의 이벤트 처리
@@ -88,6 +88,18 @@ io.on("connection", (socket) => {
       .to(roomName)
       .emit("message", `${socket["nickname"]}님이 입장하셨습니다.`);
     io.sockets.emit("room_change", publicRooms());
+
+    // 특정 방 인원의 닉네임 추가 후 업데이트
+    const socketsInRoom = io.sockets.adapter.rooms.get(roomName);
+    if (socketsInRoom) {
+      const users = [];
+      for (const socketId of socketsInRoom) {
+        const socket = io.sockets.sockets.get(socketId);
+        users.push(socket.nickname);
+      }
+      io.sockets.to(roomName).emit("update_users", users);
+    }
+
     roomJoinSuccess();
   });
 
@@ -103,6 +115,19 @@ io.on("connection", (socket) => {
       .to(roomName)
       .emit("message", `${socket["nickname"]}님이 방을 떠났습니다.`);
     socket.emit("message", `${roomName} 방을 떠났습니다.`);
+
+    // 특정 방 인원의 닉네임 삭제 후 업데이트
+    const socketsInRoom = io.sockets.adapter.rooms.get(roomName);
+    if (socketsInRoom) {
+      const users = [];
+      for (const socketId of socketsInRoom) {
+        const socket = io.sockets.sockets.get(socketId);
+        users.push(socket.nickname);
+      }
+      const newUsers = users.filter((user) => user.id !== socket.id);
+
+      io.sockets.to(roomName).emit("update_users", newUsers);
+    }
   });
 
   // 방 정보 업데이트

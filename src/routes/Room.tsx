@@ -1,8 +1,12 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { SocketProps } from "../@types/types";
-import { prevUrlState, privateRoomCheckedState } from "../atoms";
+import {
+  prevUrlState,
+  privateRoomCheckedState,
+  usersNicknamesState,
+} from "../atoms";
 import Camera from "../components/Camera";
 
 function Room({ socket }: SocketProps) {
@@ -11,6 +15,8 @@ function Room({ socket }: SocketProps) {
   const location = useLocation();
   const setPrivateRoomChecked = useSetRecoilState(privateRoomCheckedState);
 
+  const [usersNicknames, setUsersNicknames] =
+    useRecoilState(usersNicknamesState);
   const handleMessage = (msg: string) => {
     console.log(msg);
   };
@@ -23,19 +29,12 @@ function Room({ socket }: SocketProps) {
   };
 
   // 뒤로가기 확인
-  const askGoBack = (event: any) => {
+  const askGoBack = () => {
     if (window.confirm("방을 나가시겠습니까?")) {
       listenBackEvent();
       navigate("/");
     }
   };
-
-  useEffect(() => {
-    socket.on("message", handleMessage);
-    return () => {
-      socket.off("message", handleMessage);
-    };
-  }, []);
 
   const handleTryEnterRoomFromURL = (
     roomName: string | undefined,
@@ -90,10 +89,18 @@ function Room({ socket }: SocketProps) {
     navigate("/");
   };
 
+  const updateUsers = (users: string[]) => {
+    setUsersNicknames(users);
+  };
+
   useEffect(() => {
+    socket.on("message", handleMessage);
     socket.on("roomJoinFailed", handleAlert);
+    socket.on("update_users", updateUsers);
     return () => {
       socket.off("roomJoinFailed", handleAlert);
+      socket.off("update_users", updateUsers);
+      socket.off("message", handleMessage);
     };
   }, []);
 
@@ -109,6 +116,12 @@ function Room({ socket }: SocketProps) {
       >
         나가기
       </button>
+      {/* 현재인원 */}
+      <div>
+        <span>참가 인원</span>
+        {usersNicknames &&
+          usersNicknames.map((user, idx) => <p key={idx}>{user}</p>)}
+      </div>
     </div>
   );
 }

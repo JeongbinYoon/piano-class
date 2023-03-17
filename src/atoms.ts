@@ -30,6 +30,11 @@ export const prevUrlState = atom<string>({
   default: "",
 });
 
+export const usersNicknamesState = atom<string[]>({
+  key: "usersNicknamesState",
+  default: [],
+});
+
 // 사용자 스트림
 export const myStreamState = atom<MediaStream>({
   key: "myStreamState",

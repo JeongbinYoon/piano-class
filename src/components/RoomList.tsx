@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
-import { nicknameState, roomsState } from "../atoms";
+import { nicknameState, roomsState, usersNicknamesState } from "../atoms";
 import { BsKeyFill } from "react-icons/bs";
 import { SocketProps } from "../@types/types";
 
@@ -9,6 +9,8 @@ function RoomList({ socket }: SocketProps) {
   const navigate = useNavigate();
   const [rooms, setRooms] = useRecoilState(roomsState);
   const [nickname, setNickname] = useRecoilState(nicknameState);
+  const [usersNicknames, setUsersNicknames] =
+    useRecoilState(usersNicknamesState);
 
   // 방 목록 클릭
   const handleEnterRoom = (roomName: string, hasPassword: boolean) => {
@@ -22,7 +24,9 @@ function RoomList({ socket }: SocketProps) {
       }
     }
     socket.emit("enter_room", { roomName, password }, nick, fromWhere, () =>
-      navigate(`/room/${roomName}`, { state: { fromList: true } })
+      navigate(`/room/${roomName}`, {
+        state: { fromList: true },
+      })
     );
   };
 
@@ -34,24 +38,32 @@ function RoomList({ socket }: SocketProps) {
     alert(msg);
   };
 
+  const updateUsers = (users: any) => {
+    setUsersNicknames(users);
+  };
+
   useEffect(() => {
     socket.emit("room_change");
     socket.on("room_change", setRooms);
     socket.on("roomJoinFailed", handleAlert);
     socket.on("message", handleMessage);
+    socket.on("update_users", updateUsers);
     return () => {
       socket.off("message", handleMessage);
       socket.off("roomJoinFailed", handleAlert);
+      socket.off("update_users", handleAlert);
     };
   }, []);
 
   // 닉네임
-  const nicknameRef = useRef<any>();
+  const nicknameRef = useRef<HTMLInputElement>(null);
 
   const handleSaveNickname = (e: React.FormEvent) => {
     e.preventDefault();
-    setNickname(nicknameRef.current.value);
-    sessionStorage.setItem("nickname", nicknameRef.current.value);
+    if (nicknameRef.current) {
+      setNickname(nicknameRef.current.value);
+      sessionStorage.setItem("nickname", nicknameRef.current.value);
+    }
   };
 
   return (
