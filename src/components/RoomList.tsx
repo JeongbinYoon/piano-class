@@ -1,17 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
-import { roomsState } from "../atoms";
+import { nicknameState, roomsState } from "../atoms";
 import { BsKeyFill } from "react-icons/bs";
 import { SocketProps } from "../@types/types";
 
 function RoomList({ socket }: SocketProps) {
   const navigate = useNavigate();
   const [rooms, setRooms] = useRecoilState(roomsState);
+  const [nickname, setNickname] = useRecoilState(nicknameState);
 
   // 방 목록 클릭
   const handleEnterRoom = (roomName: string, hasPassword: boolean) => {
-    let nickName = "";
+    const nick = sessionStorage.getItem("nickname") ?? "";
     let password = null;
     const fromWhere = "list";
     if (hasPassword) {
@@ -20,7 +21,7 @@ function RoomList({ socket }: SocketProps) {
         return;
       }
     }
-    socket.emit("enter_room", { roomName, password }, nickName, fromWhere, () =>
+    socket.emit("enter_room", { roomName, password }, nick, fromWhere, () =>
       navigate(`/room/${roomName}`, { state: { fromList: true } })
     );
   };
@@ -44,19 +45,53 @@ function RoomList({ socket }: SocketProps) {
     };
   }, []);
 
+  // 닉네임
+  const nicknameRef = useRef<any>();
+
+  const handleSaveNickname = (e: React.FormEvent) => {
+    e.preventDefault();
+    setNickname(nicknameRef.current.value);
+    sessionStorage.setItem("nickname", nicknameRef.current.value);
+  };
+
   return (
-    <ul className="w-full max-w-sm h-fit mt-2.5 p-5 bg-white border rounded-lg md:h-525 md:w-4/12 md:mt-0">
-      {rooms.map(({ name, password }) => (
-        <li
-          key={name}
-          onClick={() => handleEnterRoom(name, password)}
-          className="flex justify-between items-center px-4 py-6 bg-slate-50 shadow-md rounded-lg cursor-pointer mb-2.5 last:mb-0"
+    <div className="flex flex-col w-full max-w-sm mt-2.5 md:w-4/12 md:mt-0 md:h-536">
+      <form
+        className="flex justify-between p-5 bg-white shadow-md rounded-lg mb-2.5 last:mb-0"
+        onSubmit={handleSaveNickname}
+      >
+        <input
+          ref={nicknameRef}
+          className="w-full p-2.5 bg-slate-50 border rounded-lg"
+          type="text"
+          placeholder="닉네임"
+          defaultValue={sessionStorage.getItem("nickname") ?? undefined}
+        />
+        <button
+          type="submit"
+          className="min-w-fit ml-3 px-5 py-2.5 bg-brand text-white rounded-lg cursor-pointer"
         >
-          <span className="text-zinc-700">{name}</span>
-          {password && <BsKeyFill className="text-2xl text-amber-400" />}
-        </li>
-      ))}
-    </ul>
+          {nickname ? "변경" : "저장"}
+        </button>
+      </form>
+      <div className="p-5 bg-white border rounded-lg md:h-full">
+        <h1 className="text-xl text-center font-bold text-zinc-700">
+          입장하기
+        </h1>
+        <ul className="mt-2.5">
+          {rooms.map(({ name, password }) => (
+            <li
+              key={name}
+              onClick={() => handleEnterRoom(name, password)}
+              className="flex justify-between items-center px-4 py-3 bg-slate-50 border rounded-lg cursor-pointer mb-2.5 last:mb-0"
+            >
+              <span className="text-zinc-700">{name}</span>
+              {password && <BsKeyFill className="text-2xl text-amber-400" />}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }
 export default RoomList;

@@ -6,6 +6,12 @@ import {
   SelectedDeviceId,
 } from "./@types/types";
 
+// 닉네임
+export const nicknameState = atom<string>({
+  key: "nicknameState",
+  default: "",
+});
+
 // 생성된 방들의 제목, 패스워드 유무
 export const roomsState = atom<RoomInfo[]>({
   key: "roomsState",
@@ -61,7 +67,7 @@ export const devicesState = atom<Devices>({
 // 음소거, 카메라 on/off
 export const muteState = atom<boolean>({
   key: "muteState",
-  default: false,
+  default: true,
 });
 export const cameraOffState = atom<boolean>({
   key: "cameraOffState",

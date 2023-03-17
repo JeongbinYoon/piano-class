@@ -42,7 +42,7 @@ function Room({ socket }: SocketProps) {
     hasPassword: boolean
   ) => {
     let fromWhere = "url";
-    let nickName = "";
+    let nickName = sessionStorage.getItem("nickname") ?? "";
     let password = null;
 
     socket.emit("enter_room", { roomName, password }, nickName, fromWhere, () =>
@@ -54,7 +54,7 @@ function Room({ socket }: SocketProps) {
     hasPassword: boolean
   ) => {
     let fromWhere = "url_success";
-    let nickName = "";
+    let nickName = sessionStorage.getItem("nickname") ?? "";
     let password = null;
 
     if (hasPassword) {

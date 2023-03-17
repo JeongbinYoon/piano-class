@@ -49,6 +49,7 @@ function CreateRoom({ socket }: SocketProps) {
     event.preventDefault();
     const roomName = roomNameInputRef.current!.value;
     const nickName = nickNameInputRef.current!.value;
+    sessionStorage.setItem("nickname", nickName);
     const fromWhere = "home";
     let password = null;
     if (privateRoomChecked) {
@@ -71,9 +72,9 @@ function CreateRoom({ socket }: SocketProps) {
   return (
     <div className="flex flex-col items-center w-full md:max-w-sm md:mr-5">
       {privateRoomChecked ? (
-        <GiGrandPiano className="text-9xl text-blue-100 mb-2.5 md:text-7xl" />
+        <GiGrandPiano className="text-9xl text-blue-100 mb-5 md:text-7xl" />
       ) : (
-        <GiGrandPiano className="text-9xl text-blue-100 mb-2.5" />
+        <GiGrandPiano className="text-9xl text-blue-100 mb-6" />
       )}
       <form
         className="w-full max-w-sm p-5 bg-white rounded-lg transition duration-200"
@@ -90,7 +91,7 @@ function CreateRoom({ socket }: SocketProps) {
             ref={roomNameInputRef}
             type="text"
             placeholder="같이 해요~"
-            className="mt-2.5 p-2.5 bg-slate-50 border rounded-lg "
+            className="mt-2.5 p-2.5 bg-slate-50 border rounded-lg"
             id="roomName"
           />
         </div>
@@ -102,7 +103,7 @@ function CreateRoom({ socket }: SocketProps) {
             ref={nickNameInputRef}
             type="text"
             placeholder="이것만 치고 잔다"
-            className="mt-2.5 p-2.5 bg-slate-50 border rounded-lg "
+            className="mt-2.5 p-2.5 bg-slate-50 border rounded-lg"
             id="nickname"
           />
         </div>
