@@ -84,6 +84,7 @@ io.on("connection", (socket) => {
     socket.join(roomName);
     socket["nickname"] = nickName === "" ? "익명" : nickName;
     socket.emit("message", `${roomName} 방에 입장하셨습니다.`);
+    socket.to(roomName).emit("createOffer");
     socket
       .to(roomName)
       .emit("message", `${socket["nickname"]}님이 입장하셨습니다.`);
@@ -142,6 +143,12 @@ io.on("connection", (socket) => {
         .emit("message", `${socket["nickname"]}님이 방을 떠났습니다.`)
     );
   });
+
+  // RTC
+  socket.on("sendOffer", (offer, roomName) => {
+    socket.to(roomName).emit("recieveOffer", offer);
+  });
+
   socket.on("message", (msg) => {
     socket.emit("message", msg);
   });

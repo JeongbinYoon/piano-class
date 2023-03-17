@@ -24,7 +24,7 @@ export const privateRoomCheckedState = atom<boolean>({
   default: false,
 });
 
-// 이젠 페지 url
+// 이젠 페이지 url
 export const prevUrlState = atom<string>({
   key: "prevUrlState",
   default: "",
@@ -39,6 +39,12 @@ export const usersNicknamesState = atom<string[]>({
 export const myStreamState = atom<MediaStream>({
   key: "myStreamState",
   default: undefined,
+});
+
+// peerConnection
+export const peerConnectionState = atom<any>({
+  key: "peerConnectionState",
+  default: null,
 });
 
 // 사용자 장비

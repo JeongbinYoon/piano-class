@@ -109,7 +109,7 @@ function Room({ socket }: SocketProps) {
       <div>{roomName}</div>
 
       {/* 카메라 */}
-      <Camera />
+      <Camera socket={socket} />
       <button
         className="bg-button px-4 py-2.5 text-lg rounded-lg"
         onClick={askGoBack}

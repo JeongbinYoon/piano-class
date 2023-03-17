@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 import { useRecoilState } from "recoil";
-import { Devices } from "../@types/types";
+import { SocketProps } from "../@types/types";
 import {
   muteState,
   cameraOffState,
@@ -8,9 +9,11 @@ import {
   devicesState,
   initialDevicesIdState,
   selectedDevicesIdState,
+  peerConnectionState,
 } from "../atoms";
 
-function Camera() {
+function Camera({ socket }: SocketProps) {
+  const { roomName } = useParams();
   const [myStream, setMyStream] = useRecoilState(myStreamState);
   const [mute, setMute] = useRecoilState(muteState);
   const [cameraOff, setCameraOff] = useRecoilState(cameraOffState);
@@ -21,6 +24,8 @@ function Camera() {
   const [initialDevicesId, setInitialDevicesId] = useRecoilState(
     initialDevicesIdState
   );
+  const [peerConnection, setPeerConnection] =
+    useRecoilState(peerConnectionState);
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -135,10 +140,60 @@ function Camera() {
     });
   };
 
+  // Socket Code
+  // useEffect(() => {
+  //   const createOffer = () => {
+  //     socket.on("createOffer", async () => {
+  //       console.log(peerConnection);
+  //       const offer = await peerConnection.createOffer();
+  //       console.log(offer);
+  //     });
+  //   };
+  //   createOffer();
+  // }, [peerConnection]);
+  useEffect(() => {
+    if (peerConnection) {
+      socket.on("createOffer", async () => {
+        const offer = await peerConnection.createOffer();
+        peerConnection.setLocalDescription(offer);
+        socket.emit("sendOffer", offer, roomName);
+      });
+    }
+  }, [peerConnection]);
+
+  // RTC Code
+  const makeConnection = () => {
+    if (myStream) {
+      const myPeerConnection = new RTCPeerConnection();
+      myStream
+        .getTracks()
+        .forEach((track) => myPeerConnection.addTrack(track, myStream));
+      setPeerConnection(myPeerConnection);
+    } else {
+      setTimeout(() => {
+        makeConnection();
+      }, 1000); // 1초 뒤에 다시 시도
+    }
+  };
+
+  const recieveOffer = (offer: any) => {
+    console.log(offer);
+  };
+
+  useEffect(() => {
+    socket.on("recieveOffer", recieveOffer);
+    return () => {
+      socket.off("recieveOffer", recieveOffer);
+    };
+  }, []);
+
   useEffect(() => {
     getMedia();
   }, [selectedDevicesId]);
 
+  useEffect(() => {
+    makeConnection();
+  }, [myStream]);
   return (
     <>
       <div>카메라</div>
